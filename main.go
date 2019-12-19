@@ -10,6 +10,15 @@ import (
 	mp3 "github.com/mikkyang/id3-go"
 )
 
+type fileInfo struct {
+	name      string
+	parentDir string
+}
+
+func (f *fileInfo) path() string {
+	return f.parentDir + "/" + f.name
+}
+
 func main() {
 	var i, o string
 
@@ -18,25 +27,26 @@ func main() {
 
 	flag.Parse()
 
-	files, err := ioutil.ReadDir(i)
+	i = strings.TrimSuffix(i, "/")
+	o = strings.TrimSuffix(o, "/")
+
+	files, err := mp3list(i)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading directory %s: %s\n", i, err.Error())
 		return
 	}
-	files = filterMP3files(files)
 
-	if err = os.MkdirAll(o, 0566); err != nil {
+	if err = os.MkdirAll(o, 0777); err != nil {
 		fmt.Fprintf(os.Stderr, "error creating output directory %s: %s\n", o, err.Error())
 		return
 	}
 
 	scanned, recovered := 0, 0
 	for _, f := range files {
-		infile := i + "/" + f.Name()
 		scanned++
-		metadata, err := mp3.Open(infile)
+		metadata, err := mp3.Open(f.path())
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.Name(), err.Error())
+			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.name, err.Error())
 			continue
 		}
 
@@ -45,7 +55,7 @@ func main() {
 		metadata.Close()
 
 		if title == "" && artist == "" {
-			fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.Name())
+			fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.name)
 			continue
 		}
 
@@ -53,12 +63,16 @@ func main() {
 
 		fmt.Printf("%d. %s - %s\n", recovered, artist, title)
 
-		/*
-			outfile := o + "/" + filename(artist, title, recovered)
-			if err = copyfile(infile, outfile); err != nil {
-				fmt.Fprintf(os.Stderr, "error creating new file %s: %s\n", outfile, err.Error())
-			}
-		*/
+		outdir := o + strings.TrimPrefix(f.parentDir, i)
+		if err = os.MkdirAll(outdir, 0777); err != nil {
+			fmt.Fprintf(os.Stderr, "error creating directory %s: %s\n", outdir, err.Error())
+			continue
+		}
+
+		outfile := outdir + "/" + recoveredName(artist, title, recovered)
+		if err = copyFile(f.path(), outfile); err != nil {
+			fmt.Fprintf(os.Stderr, "error creating new file %s: %s\n", outfile, err.Error())
+		}
 	}
 
 	perc := 0.0
@@ -68,17 +82,43 @@ func main() {
 	fmt.Printf("\nscanned %d file(s), recovered %d name(s) (%.2f%%)\n", scanned, recovered, perc)
 }
 
-func filterMP3files(files []os.FileInfo) []os.FileInfo {
-	r := make([]os.FileInfo, 0)
-	for _, f := range files {
-		if strings.HasSuffix(f.Name(), ".mp3") {
-			r = append(r, f)
-		}
+func mp3list(path string) ([]fileInfo, error) {
+	list := make([]fileInfo, 0)
+
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return list, err
 	}
-	return r
+
+	for _, f := range files {
+		if f.IsDir() {
+			subfiles, err := mp3list(path + "/" + f.Name())
+			if err != nil {
+				return list, err
+			}
+			if len(subfiles) > 0 {
+				list = append(list, subfiles...)
+			}
+			continue
+		}
+
+		if !strings.HasSuffix(f.Name(), ".mp3") {
+			continue
+		}
+
+		list = append(list, fileInfo{
+			name:      f.Name(),
+			parentDir: path,
+		})
+	}
+	return list, nil
 }
 
-func filename(artist, title string, recovered int) string {
+func sanitizeFileName(n string) string {
+	return strings.Replace(n, "/", "_", -1)
+}
+
+func recoveredName(artist, title string, recovered int) string {
 	name := ""
 	if title != "" && artist != "" {
 		name = fmt.Sprintf("%s - %s.mp3", artist, title)
@@ -87,10 +127,10 @@ func filename(artist, title string, recovered int) string {
 	} else if artist != "" {
 		name = fmt.Sprintf("%s (%d).mp3", artist, recovered)
 	}
-	return name
+	return sanitizeFileName(name)
 }
 
-func copyfile(src, dest string) error {
+func copyFile(src, dest string) error {
 	input, err := ioutil.ReadFile(src)
 	if err != nil {
 		return err
