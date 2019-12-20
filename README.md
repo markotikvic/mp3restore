@@ -34,7 +34,7 @@ source directory tree.
 ### Download
 
 ### Build from source
-You will need Go installed on your machine in ourder to build project.  
+You will need Go installed on your machine in order to build project.  
 
 	$ git clone https://github.com/markotikvic/mp3restore.git
 	$ cd mp3restore
