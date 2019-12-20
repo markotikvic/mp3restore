@@ -10,7 +10,7 @@ to recover it's content you might end up with a list of files that look like thi
 	f11000444670.mp3
 	...
 
-mp3restore will try to read ID3v1 metadata and find the song's title and artist, if it succeeds in
+mp3restore will try to read files' ID3 tags and find the song's title and artist, if it succeeds in
 doing so you will end up with a list of files looking more like this:
 
 	Artist - Song title.mp3
