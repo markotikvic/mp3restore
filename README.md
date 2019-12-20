@@ -31,7 +31,9 @@ source directory tree.
 		-i - directory containing files to be processed (default: .)
 		-o - output directory (default: ./recovered)
 
-### Download and build
+### Download
+
+### Build from source
 You will need Go installed on your machine in ourder to build project.
 	$ git clone https://github.com/markotikvic/mp3restore.git
 	$ cd mp3restore
@@ -43,3 +45,8 @@ mp3restore relies on [bogem's ID3 tag library](https://github.com/bogem/id3v2).
 
 ### License
 See [license](LICENSE).
+
+
+### TODO
+- Include build script for all platforms
+- Include releases
