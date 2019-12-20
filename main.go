@@ -54,7 +54,7 @@ func main() {
 		tag.Close()
 
 		if title == "" && artist == "" {
-			fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.name)
+			//fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.name)
 			continue
 		}
 
@@ -133,11 +133,11 @@ func recoveredName(artist, title string, recovered int) string {
 func copyFile(src, dest string) error {
 	input, err := ioutil.ReadFile(src)
 	if err != nil {
-		return err
+		return fmt.Errorf("read error: %s", err.Error())
 	}
 
 	if err = ioutil.WriteFile(dest, input, 0644); err != nil {
-		return err
+		return fmt.Errorf("write error: %s", err.Error())
 	}
 
 	return nil
