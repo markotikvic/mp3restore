@@ -28,7 +28,7 @@ func main() {
 
 	recovered := 0
 	for _, f := range files {
-		tag, err := mp3.Open(f.path(), mp3.Options{Parse: true})
+		tag, err := mp3.Open(f.fullPath(), mp3.Options{Parse: true})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.name, err.Error())
 			continue
@@ -51,8 +51,8 @@ func main() {
 			continue
 		}
 
-		outfile := outdir + "/" + recoveredName(artist, title, recovered)
-		if err = copyFile(f.path(), outfile); err != nil {
+		outfile := outPath(outdir, artist, title, recovered)
+		if err = copyFile(f.fullPath(), outfile); err != nil {
 			fmt.Fprintf(os.Stderr, "error creating new file %s: %s\n", outfile, err.Error())
 		}
 	}

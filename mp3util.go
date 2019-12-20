@@ -6,17 +6,17 @@ import (
 	"strings"
 )
 
-type fileInfo struct {
+type mp3File struct {
 	name string
 	dir  string
 }
 
-func (f *fileInfo) path() string {
+func (f *mp3File) fullPath() string {
 	return f.dir + "/" + f.name
 }
 
-func mp3list(path string) ([]fileInfo, error) {
-	list := make([]fileInfo, 0)
+func mp3list(path string) ([]mp3File, error) {
+	list := make([]mp3File, 0)
 
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -39,7 +39,7 @@ func mp3list(path string) ([]fileInfo, error) {
 			continue
 		}
 
-		list = append(list, fileInfo{
+		list = append(list, mp3File{
 			name: f.Name(),
 			dir:  path,
 		})
@@ -48,10 +48,16 @@ func mp3list(path string) ([]fileInfo, error) {
 }
 
 func sanitizeFileName(n string) string {
-	return strings.Replace(n, "/", "_", -1)
+	out := []byte(n)
+	for i := range out {
+		if out[i] == '/' || out[i] == '\\' {
+			out[i] = '_'
+		}
+	}
+	return string(out)
 }
 
-func recoveredName(artist, title string, recovered int) string {
+func outPath(outdir, artist, title string, recovered int) string {
 	name := ""
 	if title != "" && artist != "" {
 		name = fmt.Sprintf("%s - %s.mp3", artist, title)
@@ -60,7 +66,7 @@ func recoveredName(artist, title string, recovered int) string {
 	} else if artist != "" {
 		name = fmt.Sprintf("%s (%d).mp3", artist, recovered)
 	}
-	return sanitizeFileName(name)
+	return outdir + "/" + sanitizeFileName(name)
 }
 
 func copyFile(src, dest string) error {
