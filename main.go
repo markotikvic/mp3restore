@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	mp3 "github.com/mikkyang/id3-go"
+	mp3 "github.com/bogem/id3v2"
 )
 
 type fileInfo struct {
@@ -41,18 +41,17 @@ func main() {
 		return
 	}
 
-	scanned, recovered := 0, 0
+	recovered := 0
 	for _, f := range files {
-		scanned++
-		metadata, err := mp3.Open(f.path())
+		tag, err := mp3.Open(f.path(), mp3.Options{Parse: true})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.name, err.Error())
 			continue
 		}
 
-		title := metadata.Title()
-		artist := metadata.Artist()
-		metadata.Close()
+		title := tag.Title()
+		artist := tag.Artist()
+		tag.Close()
 
 		if title == "" && artist == "" {
 			fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.name)
@@ -75,6 +74,7 @@ func main() {
 		}
 	}
 
+	scanned := len(files)
 	perc := 0.0
 	if scanned != 0 {
 		perc = float64(recovered) / float64(scanned) * 100.0
