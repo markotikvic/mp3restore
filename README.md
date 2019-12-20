@@ -46,8 +46,3 @@ mp3restore relies on [bogem's ID3 tag library](https://github.com/bogem/id3v2).
 
 ### License
 See [license](LICENSE).
-
-
-### TODO
-- Include build script for all platforms
-- Include releases
