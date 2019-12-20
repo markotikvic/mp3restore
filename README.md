@@ -32,6 +32,7 @@ source directory tree.
 		-o - output directory (default: ./recovered)
 
 ### Download
+See the [releases](https://github.com/markotikvic/mp3restore/releases) section.
 
 ### Build from source
 You will need Go installed on your machine in order to build project.  
