@@ -25,12 +25,17 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error reading directory %s: %s\n", i, err.Error())
 		return
 	}
+	scanned := len(files)
+	if scanned == 0 {
+		fmt.Fprintf(os.Stderr, "no files found\n")
+		return
+	}
 
 	recovered := 0
 	for _, f := range files {
 		tag, err := mp3.Open(f.fullPath(), mp3.Options{Parse: true})
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.name, err.Error())
+			fmt.Printf("error reading file %s: %s\n", f.name, err.Error())
 			continue
 		}
 
@@ -38,7 +43,6 @@ func main() {
 		tag.Close()
 
 		if title == "" && artist == "" {
-			//fmt.Printf("can't recover '%s's name: missing ID3 tags\n", f.name)
 			continue
 		}
 		recovered++
@@ -57,10 +61,6 @@ func main() {
 		}
 	}
 
-	scanned := len(files)
-	perc := 0.0
-	if scanned != 0 {
-		perc = float64(recovered) / float64(scanned) * 100.0
-	}
+	perc := float64(recovered) / float64(scanned) * 100.0
 	fmt.Printf("\nscanned %d file(s), recovered %d name(s) (%.2f%%)\n", scanned, recovered, perc)
 }
