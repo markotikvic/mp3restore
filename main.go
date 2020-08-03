@@ -35,7 +35,7 @@ func main() {
 	for _, f := range files {
 		tag, err := mp3.Open(f.fullPath(), mp3.Options{Parse: true})
 		if err != nil {
-			fmt.Printf("error reading file %s: %s\n", f.name, err.Error())
+			fmt.Fprintf(os.Stderr, "error reading file %s: %s\n", f.name, err.Error())
 			continue
 		}
 
